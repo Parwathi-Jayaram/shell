@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-
+using namespace std;
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
@@ -14,6 +14,10 @@ int main() {
   if(command=="exit"){
     break;
   }
+  if(command.substr(0,5)=="echo"){
+    cout<<command.substr(5)<<"\n";
+  }else{
   std::cout<<command<<": command not found"<<"\n";
   }
+}
 }
