@@ -10,7 +10,7 @@ int main() {
   while(true){
   std::cout << "$ ";
   std::string command;
-  std::cin>>command;
+  getline(cin, command);
   if(command=="exit"){
     break;
   }
