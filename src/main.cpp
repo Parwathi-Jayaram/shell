@@ -22,7 +22,7 @@ int main() {
     }else if(command.substr(5)=="type"){
       cout<<"type is a shell builtin"<<endl;
     }else{
-      cout<<"invalid_command: not found"<<endl;
+      cout<<command.substr(5)<<": not found"<<endl;
     }
   }else if(command.substr(0,5)=="echo "){
     std::cout<<command.substr(5)<<endl;
