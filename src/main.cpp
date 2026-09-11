@@ -1,62 +1,47 @@
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unistd.h>
 
 int main() {
+  // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
+  // TODO: Uncomment the code below to pass the first stage
   while (true) {
     std::cout << "$ ";
-
     std::string command;
     std::getline(std::cin, command);
-
-    if (command == "exit 0") {
+    if (command == "exit") {
       break;
     }
-
     if (command.rfind("echo ", 0) == 0) {
       std::cout << command.substr(5) << "\n";
-    }
-
-    else if (command == "echo") {
-      std::cout << "\n";
-    }
-
-    else if (command.rfind("type ", 0) == 0) {
-      std::string cmd = command.substr(5);
-
-      if (cmd == "echo" || cmd == "exit" || cmd == "type") {
-        std::cout << cmd << " is a shell builtin\n";
+    } else if (command.rfind("type ", 0) == 0) {
+      if (command.substr(5) == "echo" || command.substr(5) == "exit" ||
+          command.substr(5) == "type") {
+        std::cout << command.substr(5) << " is a shell builtin\n";
       } else {
-        const char *path_env = std::getenv("PATH");
-
-        if (path_env != nullptr) {
-          std::istringstream path_stream(path_env);
-          std::string dir;
-
-          while (std::getline(path_stream, dir, ':')) {
-            std::string filepath = dir + "/" + cmd;
-
-            if (access(filepath.c_str(), X_OK) == 0) {
-              std::cout << cmd << " is " << filepath << "\n";
-              goto done;
-            }
+        std::string pathvar = std::getenv("PATH");
+        std::istringstream path_stream(pathvar);
+        std::string pathsplit;
+        int found = 0;
+        while (std::getline(path_stream, pathsplit, ':')) {
+          std::string filepath = pathsplit + '/' + command.substr(5);
+          if (access(filepath.c_str(), X_OK) == 0) {
+            std::cout << command.substr(5) << " is " << filepath << std::endl;
+            found = 1;
+            break;
           }
         }
-
-        std::cout << cmd << ": not found\n";
+        if (found == 0) {
+          std::cout << command.substr(5) << ": not found\n";
+        }
       }
-    done:;
-    }
-
-    else {
+    } else {
       std::cout << command << ": command not found\n";
     }
   }
-
   return 0;
 }
