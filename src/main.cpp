@@ -30,11 +30,11 @@ int main() {
       } else {
         std::string pathvar = std::getenv("PATH");
         std::istringstream path_stream(pathvar);
-        std::string pathsplit;
+        std::string dir;
         bool found = false;
 
-        while (std::getline(path_stream, pathsplit, ':')) {
-          std::string filepath = pathsplit + "/" + cmd;
+        while (std::getline(path_stream, dir, ':')) {
+          std::string filepath = dir + "/" + cmd;
 
           if (access(filepath.c_str(), X_OK) == 0) {
             std::cout << cmd << " is " << filepath << "\n";
@@ -56,11 +56,11 @@ int main() {
 
       std::string pathvar = std::getenv("PATH");
       std::istringstream path_stream(pathvar);
-      std::string pathsplit;
+      std::string dir;
       bool found = false;
 
-      while (std::getline(path_stream, pathsplit, ':')) {
-        std::string filepath = pathsplit + "/" + cmd;
+      while (std::getline(path_stream, dir, ':')) {
+        std::string filepath = dir + "/" + cmd;
 
         if (access(filepath.c_str(), X_OK) == 0) {
           found = true;
