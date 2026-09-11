@@ -14,7 +14,7 @@ int main() {
     std::string command;
     std::getline(std::cin, command);
 
-    if (command == "exit 0") {
+    if (command == "exit ") {
       break;
     }
 
