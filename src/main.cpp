@@ -1,47 +1,57 @@
+#pragma once
+
+#include <common/common.hpp>
+#include <echo/echo.hpp>
+#include <exit/exit.hpp>
+#include <type/type.hpp>
+
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unistd.h>
+#include <unordered_map>
 
-int main() {
-  // Flush after every std::cout / std:cerr
-  std::cout << std::unitbuf;
-  std::cerr << std::unitbuf;
+namespace shell {
+  static std::unordered_map<std::string,
+                            std::function<int(const std::string &)>>
+      string_to_command{
+          {"echo", &echo::execute},
+          {"exit", &exit::execute},
+          {"type", &type::execute},
+      };
 
-  // TODO: Uncomment the code below to pass the first stage
-  while (true) {
-    std::cout << "$ ";
-    std::string command;
-    std::getline(std::cin, command);
-    if (command == "exit") {
-      break;
+  std::pair<std::string, std::string>
+  extract_keyword_input(const std::string &command) {
+    size_t first_word_idx = command.find(' ');
+    if (first_word_idx == std::string::npos) {
+      return {command, ""};
     }
-    if (command.rfind("echo ", 0) == 0) {
-      std::cout << command.substr(5) << "\n";
-    } else if (command.rfind("type ", 0) == 0) {
-      if (command.substr(5) == "echo" || command.substr(5) == "exit" ||
-          command.substr(5) == "type") {
-        std::cout << command.substr(5) << " is a shell builtin\n";
-      } else {
-        std::string pathvar = std::getenv("PATH");
-        std::istringstream path_stream(pathvar);
-        std::string pathsplit;
-        int found = 0;
-        while (std::getline(path_stream, pathsplit, ':')) {
-          std::string filepath = pathsplit + '/' + command.substr(5);
-          if (access(filepath.c_str(), X_OK) == 0) {
-            std::cout << command.substr(5) << " is " << filepath << std::endl;
-            found = 1;
-            break;
-          }
-        }
-        if (found == 0) {
-          std::cout << command.substr(5) << ": not found\n";
-        }
-      }
+    const std::string keyword = command.substr(0, first_word_idx);
+    const std::string input = command.substr(first_word_idx + 1);
+    return {keyword, input};
+  }
+
+  int execute(const std::string &command) {
+    const auto [keyword, input] = extract_keyword_input(command);
+    if (string_to_command.contains(keyword)) {
+      return string_to_command[keyword](input);
+    } else if (!common::get_command_path(keyword).empty()) {
+      return std::system(command.c_str());
     } else {
-      std::cout << command << ": command not found\n";
+      std::cout << keyword << ": command not found" << std::endl;
+      return 1;
     }
   }
-  return 0;
-}
+
+  void repl() {
+    while (true) {
+      std::cout << "$ ";
+      std::string command;
+      std::getline(std::cin, command);
+      int exit_code = execute(command);
+      if (exit_code == -1) {
+        break;
+      }
+    }
+  }
+} // namespace shell
